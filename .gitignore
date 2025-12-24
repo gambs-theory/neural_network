@@ -1,0 +1,10 @@
+nn.c
+nn.h
+ds
+ds/list.h
+ds/list.c
+*.exe
+simple.exe 
+main2.exe
+xor.exe 
+main2.c
