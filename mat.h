@@ -6,7 +6,6 @@
 
 #define MAT_PRINT(var) mat_print(#var, var)
 
-
 // f: R->R ~ rr function
 typedef double (*rr_function)(double);
 

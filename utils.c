@@ -15,6 +15,18 @@ float randf(void) {
   return (float)rand()/(float)(RAND_MAX);
 }
 
+double randlf(void) {
+  return (double)rand()/(double)(RAND_MAX);
+}
+
+float randf_range(float low, float high) {
+  return (high - low) * randf() + low;
+}
+
+double randlf_range(double low, double high) {
+  return (high - low) * randlf() + low;
+}
+
 double relu(double x) {
   return MAX(0, x);
 }

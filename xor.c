@@ -76,7 +76,7 @@ int main(void) {
   // Learning Rate
   double eta = 1e-0;
 
-  for (int it = 0; it < 2000; it++) {
+  for (int it = 0; it < 10000; it++) {
     
     Mat *Y_pred = predict(X, W_1, b_1, W_2, b_2);
 

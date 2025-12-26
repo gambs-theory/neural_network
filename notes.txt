@@ -1,0 +1,33 @@
+Representação de Matrizes 
+
+Versão 0.1 - Criação de um "objeto" Mat. Uma vez que a mesma matriz deve ser
+recalculada inúmeras vezes, é mais interessante e fácil alocar na memória o
+espaço para essas matrizes e atualizá-los a cada iteração. Podemos utilizar 
+a mesma estrutura da linguagem assembly:
+
+mat_mult (dst, a, b)
+
+Onde temos, como primeiro parâmetro, a matriz destino (onde será armazenado)
+o resultado da operação ao invés de retornar uma nova matriz, alocada na mem.
+, a cada operação. Essa formulação ajuda a reaproveitar os espaços alocado na
+memória.
+
+Representação da Rede Neural como matrizes 
+
+<X|*W + <b|
+
+Onde as colunas da matriz W são os neurônios e as linhas representam as entradas.
+Essa representação é mais adequada para evitar a transposta da matriz de entrada
+X ao "passar" pela rede neural, já que dados naturalmente são estruturados como 
+tendo as amostras por linha ao invés de colunas. 
+
+Finite Difference Learning Method
+
+dC/dW(i,j) = (C(W + e) - C(W))/ e
+
+Esse método, apesar de ser mais simples de ser implementado, é computacionalmente
+custoso, uma vez que é necessário realizar, a cada época, i * j forwards (Apenas
+para as matrizes de pesos) para o cálculo da derivada estimada. Para realizar um 
+speedup no processo de aprendizado a ideia de retropropagação pode ser utilizada.
+A estratégia é calcular todas as taxas de variação dC/dW(i,j) com apenas um único
+forward através da regra da cadeia. 

@@ -10,6 +10,10 @@
 
 // Generate random float values 
 float randf(void);
+double randlf(void);
+
+float randf_range(float low, float high);
+double randlf_range(double low, double high);
 
 // Activation function (double)
 double relu    (double x);
