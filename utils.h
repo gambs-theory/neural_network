@@ -20,9 +20,4 @@ double relu    (double x);
 double softplus(double x);
 double sigmoid (double x);
 
-// Loss function - Column Matrix
-double se  (Mat *y_pred, Mat *y_true);
-double mse (Mat *y_pred, Mat *y_true);
-double rmse(Mat *y_pred, Mat *y_true);
-
 #endif // PERCEPTRON_H

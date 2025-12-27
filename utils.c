@@ -38,39 +38,3 @@ double softplus (double x) {
 double sigmoid (double x) {
   return 1./ (1. + exp(-x));
 }
-
-// Loss function
-
-// Square Residual or Square Error
-double se (Mat *y_pred, Mat *y_true) {
-  if (y_pred->rows != y_true->rows) {
-    perror("Dimesions conflict y_pred vs y_true\n");
-    return 1e9 + 7;
-  }
-
-  double cum_se = 0.0;
-  for (int i = 0; i < y_pred->rows; i++) {
-    cum_se += pow((y_pred->mat[i][0] - y_true->mat[i][0]), 2);
-  }
-
-  return cum_se;
-}
-
-// Mean Squared Error
-double mse(Mat *y_pred, Mat *y_true) {
-  if (y_pred->rows != y_true->rows) {
-    perror("Dimesions conflict y_pred vs y_true\n");
-    return 1e9 + 7;
-  }
-  return se(y_pred, y_true)/ y_pred->rows;
-}
-
-// Root Mean Squared Error
-double rmse(Mat *y_pred, Mat *y_true) {
-  if (y_pred->rows != y_true->rows) {
-    perror("Dimesions conflict y_pred vs y_true\n");
-    return 1e9 + 7;
-  }
-
-  return sqrt(mse(y_pred, y_true));
-}

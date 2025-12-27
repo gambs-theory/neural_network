@@ -1,5 +1,6 @@
 // Exemplo simples para portas lógicas: OR, AND
 
+#include "metrics.h"
 #include "utils.h"
 #include "mat.h"
 
@@ -22,36 +23,29 @@ row_3 train[] = {
 
 // Predict function
 Mat *predict (Mat *X, Mat *W_1, Mat *b_1, Mat *W_2, Mat *b_2) {
-  Mat *Y_pred = mat_new(LEN(train), 1);
+  Mat *Y_pred = mat_alloc(LEN(train), 1);
+  Mat *a_1 = mat_alloc(2, 1);
+  Mat *a_2 = mat_alloc(1, 1);
 
   for (int i = 0; i < LEN(train); i++) {
-    X->mat[0][0] = train[i][0];
-    X->mat[1][0] = train[i][1];
+    MAT_AT(X, 1, 0) = train[i][1];
+    MAT_AT(X, 0, 0) = train[i][0];
     
-    Mat *A_1 = mat_mult(W_1, X);
-    Mat *Z_1 = mat_add(A_1, b_1);
+    mat_mult(a_1, W_1, X);
+    mat_add(a_1, a_1, b_1);
+    mat_apply(a_1, a_1, sigmoid);
     
-    // mat_print(R);
-    // mat_apply(Z_1, sigmoid, TRUE);
-    mat_apply(Z_1, sigmoid, 1);
-    
-    Mat *A_2 = mat_mult(W_2, Z_1);
-    Mat *Y = mat_add(A_2, b_2);
-    
-    // mat_print(R);
-    // mat_apply(Y, sigmoid, TRUE);
-    mat_apply(Y, sigmoid, 1);
+    mat_mult(a_2, W_2, a_1);
+    mat_add(a_2, a_2, b_2);
+    mat_apply(a_2, a_2, sigmoid);
 
-    double y_pred = Y->mat[0][0];
+    double y_pred = MAT_AT(a_2, 0, 0);
     
-    Y_pred->mat[i][0] = y_pred;
-
-    mat_delete(A_1);
-    mat_delete(Z_1);
-
-    mat_delete(A_2);
-    mat_delete(Y);
+    MAT_AT(Y_pred, i, 0) = y_pred;
   }
+
+  mat_delete(a_1);
+  mat_delete(a_2);
 
   return Y_pred;
 }
@@ -60,17 +54,20 @@ int main(void) {
   // srand(time(0));
   srand(42);
   
-  Mat *W_1 = mat_new_random (2, 2); // Not gate
-  Mat *b_1 = mat_new (2, 1); // Starts with null vector
+  Mat *W_1 = mat_alloc (2, 2); // Not gate
+  Mat *b_1 = mat_alloc (2, 1); // Starts with null vector
 
-  Mat *W_2 = mat_new_random (1, 2); // Not gate
-  Mat *b_2 = mat_new (1, 1); // Starts with null vector
+  Mat *W_2 = mat_alloc (1, 2); // Not gate
+  Mat *b_2 = mat_alloc (1, 1); // Starts with null vector
 
-  Mat *X = mat_new (2, 1);
+  Mat *X = mat_alloc (2, 1);
 
-  Mat *Y_true = mat_new(LEN(train), 1);
+  mat_fill_rand_range(W_1, 0, 1);
+  mat_fill_rand_range(W_2, 0, 1);
+
+  Mat *Y_true = mat_alloc(LEN(train), 1);
   for (int i = 0; i < LEN(train); i++) {
-    Y_true->mat[i][0] = train[i][2];
+    MAT_AT(Y_true, i, 0) = train[i][2];
   }
 
   // Learning Rate
@@ -91,13 +88,19 @@ int main(void) {
     // W <- W - eta * dC/dW
 
     // ======================== FIRST LAYER ===================================
+    Mat *W_1_eps = mat_alloc(W_1->rows, W_1->cols);
+    Mat *b_1_eps = mat_alloc(b_1->rows, b_1->cols);
+
+    Mat *W_2_eps = mat_alloc(W_2->rows, W_2->cols);
+    Mat *b_2_eps = mat_alloc(b_2->rows, b_2->cols);
+
     double eps = 1e-1;
     for (int i = 0; i < W_1->rows; i++) {
       for (int j = 0; j < W_1->cols; j++) {
         // Perturbation
-        Mat *W_1_eps = mat_copy(W_1);
-        W_1_eps->mat[i][j] += eps;
-        
+        mat_copy(W_1_eps, W_1);
+        MAT_AT(W_1_eps, i, j) += eps; 
+
         // Prediction
         Mat *Y_eps = predict(X, W_1_eps, b_1, W_2, b_2);
 
@@ -107,10 +110,9 @@ int main(void) {
         double dW = (se(Y_eps, Y_true) - err)/ eps;
 
         // Learning
-        W_1->mat[i][j] -= eta * dW;
+        MAT_AT(W_1, i, j) -= eta * dW;
 
         // Free memory
-        mat_delete(W_1_eps);
         mat_delete(Y_eps);
       }
     }
@@ -119,8 +121,8 @@ int main(void) {
     for (int i = 0; i < b_1->rows; i++) {
       for (int j = 0; j < b_1->cols; j++) {
         // Perturbation
-        Mat *b_1_eps = mat_copy(b_1);
-        b_1_eps->mat[i][j] += eps;
+        mat_copy(b_1_eps, b_1);
+        MAT_AT(b_1_eps, i, j) += eps;
         
         // Prediction
         Mat *Y_eps = predict(X, W_1, b_1_eps, W_2, b_2);
@@ -131,10 +133,9 @@ int main(void) {
         double db = (se(Y_eps, Y_true) - err)/ eps;
 
         // Learning
-        b_1->mat[i][j] -= eta * db;
+        MAT_AT(b_1, i, j) -= eta * db;
 
         // Free memory
-        mat_delete(b_1_eps);
         mat_delete(Y_eps);
       }
     }
@@ -143,8 +144,8 @@ int main(void) {
     for (int i = 0; i < W_2->rows; i++) {
       for (int j = 0; j < W_2->cols; j++) {
         // Perturbation
-        Mat *W_2_eps = mat_copy(W_2);
-        W_2_eps->mat[i][j] += eps;
+        mat_copy(W_2_eps, W_2);
+        MAT_AT(W_2_eps, i, j) += eps;
         
         // Prediction
         Mat *Y_eps = predict(X, W_1, b_1, W_2_eps, b_2);
@@ -155,10 +156,9 @@ int main(void) {
         double dW = (se(Y_eps, Y_true) - err)/ eps;
 
         // Learning
-        W_2->mat[i][j] -= eta * dW;
+        MAT_AT(W_2, i, j) -= eta * dW;
 
         // Free memory
-        mat_delete(W_2_eps);
         mat_delete(Y_eps);
       }
     }
@@ -167,8 +167,8 @@ int main(void) {
     for (int i = 0; i < b_2->rows; i++) {
       for (int j = 0; j < b_2->cols; j++) {
         // Perturbation
-        Mat *b_2_eps = mat_copy(b_2);
-        b_2_eps->mat[i][j] += eps;
+        mat_copy(b_2_eps, b_2);
+        MAT_AT(b_2_eps, i, j) += eps;
         
         // Prediction
         Mat *Y_eps = predict(X, W_1, b_1, W_2, b_2_eps);
@@ -179,15 +179,20 @@ int main(void) {
         double db = (se(Y_eps, Y_true) - err)/ eps;
         
         // Learning
-        b_2->mat[i][j] -= eta * db;
+        MAT_AT(b_2, i, j) -= eta * db;
 
         // Free memory
-        mat_delete(b_2_eps);
         mat_delete(Y_eps);
       }
     }
 
     // Free mem
+    mat_delete(W_1_eps);
+    mat_delete(b_1_eps);
+    
+    mat_delete(W_2_eps);
+    mat_delete(b_2_eps);
+    
     mat_delete(Y_pred);
   }
 
